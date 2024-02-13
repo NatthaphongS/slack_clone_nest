@@ -1,4 +1,8 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { AuthCredentialsDto } from './dto/auth-credential.dto';
 import * as bcrypt from 'bcrypt';
 import { JwtPayload } from './jwt-payload.interface';
@@ -21,6 +25,9 @@ export class AuthService {
       await this.prisma.user.create({ data: authCredentialsDto });
     } catch (error) {
       console.log(error);
+      if (error.code === 'P2002') {
+        throw new ConflictException('Email is already taken');
+      }
     }
   }
 
