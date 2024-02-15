@@ -14,6 +14,7 @@ model User {
   id            String            @id @default(uuid())
   email         String          @unique
   name          String?
+  userProfile String?
   password      String
   messages      Message[]
   channelMembers ChannelMember[]
@@ -24,7 +25,15 @@ model Channel {
   name          String
   isDirect      Boolean         @default(false)
   channelMembers ChannelMember[]
-  messages      Message[]
+  chatRooms       ChatRoom[]
+}
+
+model ChatRoom {
+  id              String            @id @default(uuid())
+  name            String
+  channelId       String
+  channel         Channel         @relation(fields: [channelId], references: [id])
+  messages        Message[]
 }
 
 model Message {
@@ -32,9 +41,9 @@ model Message {
   content   String
   createdAt DateTime @default(now())
   authorId  String 
-  channelId String
+  chatRoomId  String
   author    User     @relation(fields: [authorId], references: [id])
-  channel   Channel  @relation(fields: [channelId], references: [id])
+  chatRoom  ChatRoom  @relation(fields: [chatRoomId],references: [id])
 }
 
 model ChannelMember {
