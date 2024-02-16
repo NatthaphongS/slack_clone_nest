@@ -2,9 +2,9 @@ import {
   ConflictException,
   Injectable,
   NotFoundException,
-  UnauthorizedException,
 } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
+import { channel } from 'diagnostics_channel';
 import { AuthUserDto } from 'src/auth/dto/auth-user.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 
@@ -22,8 +22,15 @@ export class ChannelService {
   async getMyChannelLists(user: AuthUserDto) {
     const myChannelLists = await this.prisma.channelMember.findMany({
       where: { userId: user.id },
-      select: { channel: { select: { id: true, name: true } } },
+      select: {
+        channel: { select: { id: true, name: true, createdAt: true } },
+      },
     });
+    myChannelLists.sort(
+      (a, b) =>
+        new Date(b.channel.createdAt).getTime() -
+        new Date(a.channel.createdAt).getTime(),
+    );
     return myChannelLists;
   }
 
@@ -35,6 +42,7 @@ export class ChannelService {
           select: {
             id: true,
             name: true,
+            createdAt: true,
           },
         },
         channelMembers: {
@@ -52,6 +60,16 @@ export class ChannelService {
     if (!isMember) {
       throw new NotFoundException('Not found this room');
     }
+    const orderChatRoom = await this.prisma.chatRoom.findMany({
+      where: { channelId: id },
+      orderBy: { createdAt: 'asc' },
+      select: {
+        id: true,
+        name: true,
+        createdAt: true,
+      },
+    });
+    channel.chatRooms = orderChatRoom;
     return channel;
   }
 
@@ -97,7 +115,6 @@ export class ChannelService {
   }
 
   async addMember(userEmail: string, channelId: string) {
-    // try {
     const findUser = await this.prisma.user.findUnique({
       where: { email: userEmail },
     });
@@ -116,12 +133,5 @@ export class ChannelService {
     });
     console.log(newMember);
     return newMember;
-    // } catch (error) {
-    //   // console.log(error);
-    //   if (error.code === 'P2025') {
-    //     throw new NotFoundException(`Not found user with email : ${userEmail}`);
-    //   }
-    // }
   }
-  async addRoom() {}
 }

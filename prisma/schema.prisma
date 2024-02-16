@@ -23,6 +23,7 @@ model User {
 model Channel {
   id            String            @id @default(uuid())
   name          String
+  createdAt DateTime @default(now())
   isDirect      Boolean         @default(false)
   channelMembers ChannelMember[]
   chatRooms       ChatRoom[]
@@ -31,6 +32,7 @@ model Channel {
 model ChatRoom {
   id              String            @id @default(uuid())
   name            String
+  createdAt DateTime @default(now())
   channelId       String
   channel         Channel         @relation(fields: [channelId], references: [id])
   messages        Message[]
