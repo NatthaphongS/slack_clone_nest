@@ -8,7 +8,7 @@ import { channel } from 'diagnostics_channel';
 import { AuthUserDto } from 'src/auth/dto/auth-user.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 
-const userSelect = {
+export const userSelect = {
   id: true,
   email: true,
   name: true,

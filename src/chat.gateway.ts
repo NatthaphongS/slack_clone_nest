@@ -7,6 +7,8 @@ import {
 } from '@nestjs/websockets';
 import { Socket, Server } from 'socket.io';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { AuthUserDto } from './auth/dto/auth-user.dto';
+import { userSelect } from './channel/channel.service';
 
 @WebSocketGateway({
   cors: {
@@ -52,7 +54,6 @@ export class ChatGateway {
     @ConnectedSocket() client: Socket,
   ) {
     client.leave(room);
-    client.emit('leftRoom', room);
     this.server.to(room).emit('userLeft', { userId: client.id, roomId: room });
     console.log('leave room', room);
   }
@@ -72,6 +73,7 @@ export class ChatGateway {
         chatRoomId: data.chatRoomId,
         authorId: data.userId,
       },
+      include: { author: { select: userSelect } },
     });
     this.server.to(data.chatRoomId).emit('newMessage', message);
   }
